@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
-import argon2 from 'argon2';
+import { getSession, hashPassword } from '@/lib/auth';
 
 export async function POST(req: Request) {
   const session = await getSession();
@@ -11,7 +10,7 @@ export async function POST(req: Request) {
   const password = formData.get('password') as string;
 
   if (password) {
-    const hash = await argon2.hash(password);
+    const hash = hashPassword(password);
     await prisma.user.update({ where: { id: session.userId }, data: { passwordHash: hash } });
     await prisma.auditLog.create({ data: { userId: session.userId, action: 'CHANGE_PASSWORD' } });
   }

@@ -1,10 +1,16 @@
 import { PrismaClient } from '@prisma/client';
-import argon2 from 'argon2';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derivedKey = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${derivedKey}`;
+}
+
 async function main() {
-  const passwordHash = await argon2.hash('kali');
+  const passwordHash = hashPassword('kali');
   
   const user = await prisma.user.upsert({
     where: { username: 'root' },

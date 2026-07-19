@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { encrypt } from '@/lib/auth';
-import argon2 from 'argon2';
+import { encrypt, verifyPassword } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
@@ -9,7 +8,7 @@ export async function POST(req: Request) {
     const { username, password } = await req.json();
     const user = await prisma.user.findUnique({ where: { username } });
 
-    if (user && await argon2.verify(user.passwordHash, password)) {
+    if (user && verifyPassword(password, user.passwordHash)) {
       await prisma.auditLog.create({ data: { userId: user.id, action: 'LOGIN_SUCCESS' } });
       
       const session = await encrypt({ userId: user.id, username: user.username });
