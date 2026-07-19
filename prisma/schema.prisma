@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            Int         @id @default(autoincrement())
+  username      String      @unique
+  passwordHash  String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  licenses      License[]   @relation("GeneratedBy")
+  auditLogs     AuditLog[]
+}
+
+model Application {
+  id           Int        @id @default(autoincrement())
+  name         String
+  packageName  String     @unique
+  platform     String
+  pubKeyId     String?
+  status       String     @default("Active")
+  createdAt    DateTime   @default(now())
+  licenses     License[]
+}
+
+model License {
+  id                Int         @id @default(autoincrement())
+  applicationId     Int
+  deviceFingerprint String
+  issueDate         DateTime
+  expiryDate        DateTime
+  type              String
+  status            String      @default("Active")
+  salt              String
+  signature         String
+  payload           String
+  generatedById     Int?
+  createdAt         DateTime    @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id])
+  generatedBy User?       @relation("GeneratedBy", fields: [generatedById], references: [id])
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int?
+  action      String
+  targetType  String?
+  targetId    Int?
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model Setting {
+  key   String @id
+  value String
+}

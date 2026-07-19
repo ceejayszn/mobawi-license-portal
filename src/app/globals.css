@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-mono text-sm leading-relaxed antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply text-accent font-normal mb-4;
+  }
+
+  h1 {
+    @apply text-2xl;
+  }
+
+  h2 {
+    @apply text-xl;
+  }
+
+  a {
+    @apply underline hover:text-accent;
+  }
+}
+
+@layer components {
+  .card {
+    @apply border border-border p-5 mb-5 bg-[#0f0f0f];
+  }
+
+  .input-field {
+    @apply w-full bg-[#111] text-foreground border border-border p-2 outline-none focus:border-accent font-mono;
+  }
+
+  .btn {
+    @apply bg-[#1a1a1a] text-accent border border-border px-4 py-2 font-mono uppercase cursor-pointer hover:bg-[#333];
+  }
+
+  .table-main {
+    @apply w-full border-collapse mt-5;
+  }
+
+  .table-main th,
+  .table-main td {
+    @apply border border-border p-2.5 text-left;
+  }
+
+  .table-main th {
+    @apply bg-[#111] text-accent font-normal uppercase;
+  }
+
+  .table-main tr:hover {
+    @apply bg-[#1a1a1a];
+  }
+
+  .alert-error {
+    @apply p-2.5 border border-error text-error mb-4;
+  }
+
+  .alert-success {
+    @apply p-2.5 border border-success text-success mb-4;
+  }
+
+  .mono-block {
+    @apply bg-black p-4 border border-[#333] font-mono whitespace-pre-wrap break-all mt-2.5;
+  }
+}
