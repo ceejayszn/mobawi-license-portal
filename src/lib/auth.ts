@@ -1,7 +1,11 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const secretKey = process.env.JWT_SECRET || 'super-secret-fallback-key-do-not-use-in-prod';
+const fallbackKey = 'super-secret-fallback-key-do-not-use-in-prod';
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is missing. This is required for security in production.');
+}
+const secretKey = process.env.JWT_SECRET || fallbackKey;
 const key = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: any) {
