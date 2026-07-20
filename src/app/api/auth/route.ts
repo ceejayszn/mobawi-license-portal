@@ -24,7 +24,8 @@ export async function POST(req: Request) {
 
     await prisma.auditLog.create({ data: { action: 'LOGIN_FAILED' } });
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Login error:', error);
+    return NextResponse.json({ error: 'Internal Server Error', message: error?.message || String(error) }, { status: 500 });
   }
 }
