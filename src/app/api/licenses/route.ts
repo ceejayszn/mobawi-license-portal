@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 
 export async function POST(req: Request) {
   const session = await getSession();
-  if (!session) return NextResponse.redirect(new URL('/', req.url));
+  if (!session) return NextResponse.redirect(new URL('/', req.url), 303);
 
   const formData = await req.formData();
   const action = formData.get('action');
@@ -24,5 +24,5 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.redirect(new URL('/records', req.url));
+  return NextResponse.redirect(new URL('/records', req.url), 303);
 }

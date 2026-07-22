@@ -4,7 +4,7 @@ import { getSession, hashPassword } from '@/lib/auth';
 
 export async function POST(req: Request) {
   const session = await getSession();
-  if (!session) return NextResponse.redirect(new URL('/', req.url));
+  if (!session) return NextResponse.redirect(new URL('/', req.url), 303);
 
   const formData = await req.formData();
   const password = formData.get('password') as string;
@@ -23,5 +23,5 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.redirect(new URL('/settings', req.url));
+  return NextResponse.redirect(new URL('/settings', req.url), 303);
 }
