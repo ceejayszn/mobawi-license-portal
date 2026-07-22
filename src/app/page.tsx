@@ -20,7 +20,8 @@ export default function LoginPage() {
       router.push('/dashboard');
       router.refresh();
     } else {
-      window.location.href = 'https://watchbutdonotlearn.github.io/';
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || 'Invalid credentials');
     }
   }
 

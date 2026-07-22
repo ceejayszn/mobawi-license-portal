@@ -1,0 +1,54 @@
+MOBAWI LICENSE PORTAL - LICENSING & IMPLEMENTATION GUIDE
+========================================================
+
+This licensing system uses Asymmetric Cryptography (Ed25519) combined with Hardware Fingerprinting to create offline, forge-proof licenses. This means your devices don't even need internet access to verify if their license is legitimate.
+
+Here is exactly how it works under the hood, and a step-by-step guide on how to build this logic into your upcoming apps and devices.
+
+1. HOW THE CRYPTOGRAPHY WORKS
+--------------------------------------------------------
+When your portal spins up, it generates an Ed25519 Keypair (a Public Key and a Private Key). 
+* The Private Key is locked securely inside your portal's database. It is used to *sign* and create licenses. 
+* The Public Key is what you will embed inside your future apps. The Public Key can *only* verify licenses; it cannot create them. Because it's mathematically impossible to reverse-engineer the Private Key from the Public Key, hackers cannot generate their own fake licenses.
+
+2. WHAT IS INSIDE A LICENSE?
+--------------------------------------------------------
+When you click "Generate" in your portal, it asks for a Device Fingerprint. This is a unique hardware identifier (like a MAC address or CPU serial number) from the device you are licensing. 
+
+The portal creates a JSON payload looking like this:
+{
+  "app": 1, // Application ID
+  "dev": "A1:B2:C3:D4:E5:F6", // Device Fingerprint
+  "exp": "2027-01-01T00:00:00.000Z", // Expiration Date
+  "typ": "Pro", // License Type
+  "st": "Active" // Status
+}
+
+The portal then uses the Private Key to generate a cryptographic signature for that exact text. It bundles the text and the signature into a Base64 string (the `license_blob`) and gives it to you.
+
+========================================================
+HOW TO IMPLEMENT THIS IN YOUR UPCOMING APPS
+========================================================
+When you build your new desktop app, mobile app, or IoT device, here is the exact logic you need to code into them:
+
+STEP 1: EMBED THE PUBLIC KEY
+Go to your portal's settings, grab the Public Key, and hardcode it into your new app's source code.
+
+STEP 2: READ THE HARDWARE FINGERPRINT
+Write a function in your app that reads the device's hardware ID. 
+* Example: If it's a Windows app, read the motherboard UUID. If it's a Raspberry Pi device, read the CPU serial from /proc/cpuinfo. 
+
+STEP 3: DECODE & VERIFY THE SIGNATURE
+When the user pastes the `license_blob` into your app, your app needs to:
+1. Decode the Base64 string to get the JSON payload and the signature.
+2. Use a standard cryptography library (like `tweetnacl` for Javascript/Typescript, `libsodium` for C++/PHP/Python, or `BouncyCastle` for Java/C#).
+3. Pass the JSON text, the signature, and your hardcoded Public Key into the verification function (e.g., nacl.sign.detached.verify()).
+4. If it returns false, the license is fake or has been tampered with. Kick the user out.
+
+STEP 4: VALIDATE THE RULES
+If the signature is true (meaning it genuinely came from your portal), your app must do three final checks on the JSON payload:
+1. Check Expiry (`exp`): Is the current date past the expiration date?
+2. Check Hardware (`dev`): Does the device fingerprint in the license match the hardware fingerprint we read in Step 2? (This prevents someone from buying one license and sharing it with 100 friends).
+3. Check App (`app`): Does the App ID match this software?
+
+If all of these pass, your app unlocks its premium features!
