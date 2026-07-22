@@ -10,22 +10,30 @@ export async function POST(req: Request) {
   const action = formData.get('action');
 
   if (action === 'create') {
-    try {
-      const app = await prisma.application.create({
-        data: {
-          name: formData.get('name') as string,
-          packageName: formData.get('packageName') as string,
-          platform: formData.get('platform') as string,
-        }
-      });
-      await prisma.auditLog.create({ data: { userId: session.userId, action: 'CREATE_APPLICATION', targetId: app.id, targetType: 'application' } });
-    } catch (e) {
-      console.error(e);
+    const name = (formData.get('name') as string || '').trim();
+    const packageName = (formData.get('packageName') as string || '').trim();
+    const platform = (formData.get('platform') as string || '').trim();
+
+    if (name && packageName && platform) {
+      try {
+        const app = await prisma.application.create({
+          data: { name, packageName, platform }
+        });
+        await prisma.auditLog.create({ data: { userId: session.userId, action: 'CREATE_APPLICATION', targetId: app.id, targetType: 'application' } }).catch(() => {});
+      } catch (e) {
+        console.error('Error creating application:', e);
+      }
     }
   } else if (action === 'delete') {
     const id = parseInt(formData.get('id') as string, 10);
-    await prisma.application.delete({ where: { id } });
-    await prisma.auditLog.create({ data: { userId: session.userId, action: 'DELETE_APPLICATION', targetId: id, targetType: 'application' } });
+    if (!isNaN(id)) {
+      try {
+        await prisma.application.delete({ where: { id } });
+        await prisma.auditLog.create({ data: { userId: session.userId, action: 'DELETE_APPLICATION', targetId: id, targetType: 'application' } }).catch(() => {});
+      } catch (e) {
+        console.error('Error deleting application:', e);
+      }
+    }
   }
 
   return NextResponse.redirect(new URL('/applications', req.url));
