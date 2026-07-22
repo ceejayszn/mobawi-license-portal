@@ -5,6 +5,12 @@ import Navigation from '@/components/Navigation';
 
 export const metadata = {
   title: 'Mobawi License Portal',
+  description: 'Offline License Management & Generation Portal',
+  icons: {
+    icon: '/favicon.webp',
+    shortcut: '/favicon.webp',
+    apple: '/favicon.webp',
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
