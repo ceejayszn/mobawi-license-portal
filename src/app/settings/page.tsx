@@ -8,11 +8,16 @@ export default async function SettingsPage() {
   if (!session) redirect('/');
 
   const keys = await getSystemKeypair();
-  const logs = await prisma.auditLog.findMany({
-    orderBy: { id: 'desc' },
-    include: { user: true },
-    take: 20
-  });
+  let logs: any[] = [];
+  try {
+    logs = await prisma.auditLog.findMany({
+      orderBy: { id: 'desc' },
+      include: { user: true },
+      take: 20
+    });
+  } catch (e) {
+    console.error('Settings database error:', e);
+  }
 
   return (
     <div>

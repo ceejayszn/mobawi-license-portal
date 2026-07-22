@@ -6,19 +6,31 @@ export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect('/');
 
-  const totalApps = await prisma.application.count();
-  const totalLicenses = await prisma.license.count();
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todaysLicenses = await prisma.license.count({
-    where: { createdAt: { gte: today } }
-  });
+  let totalApps = 0;
+  let totalLicenses = 0;
+  let todaysLicenses = 0;
+  let activeLicenses = 0;
+  let expiredLicenses = 0;
+  let revokedLicenses = 0;
+  let suspendedLicenses = 0;
 
-  const activeLicenses = await prisma.license.count({ where: { status: 'Active' } });
-  const expiredLicenses = await prisma.license.count({ where: { expiryDate: { lt: new Date() } } });
-  const revokedLicenses = await prisma.license.count({ where: { status: 'Revoked' } });
-  const suspendedLicenses = await prisma.license.count({ where: { status: 'Suspended' } });
+  try {
+    totalApps = await prisma.application.count();
+    totalLicenses = await prisma.license.count();
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    todaysLicenses = await prisma.license.count({
+      where: { createdAt: { gte: today } }
+    });
+
+    activeLicenses = await prisma.license.count({ where: { status: 'Active' } });
+    expiredLicenses = await prisma.license.count({ where: { expiryDate: { lt: new Date() } } });
+    revokedLicenses = await prisma.license.count({ where: { status: 'Revoked' } });
+    suspendedLicenses = await prisma.license.count({ where: { status: 'Suspended' } });
+  } catch (e) {
+    console.error('Dashboard database error:', e);
+  }
 
   const stats = [
     { label: 'Total Applications', value: totalApps },

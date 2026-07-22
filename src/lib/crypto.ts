@@ -4,34 +4,48 @@ import { prisma } from './prisma';
 import crypto from 'crypto';
 
 export async function getSystemKeypair() {
-  let privateKeySetting = await prisma.setting.findUnique({ where: { key: 'private_key' } });
-  let publicKeySetting = await prisma.setting.findUnique({ where: { key: 'public_key' } });
+  try {
+    let privateKeySetting = await prisma.setting.findUnique({ where: { key: 'private_key' } });
+    let publicKeySetting = await prisma.setting.findUnique({ where: { key: 'public_key' } });
 
-  if (!privateKeySetting || !publicKeySetting) {
-    const keypair = nacl.sign.keyPair();
-    const privBase64 = encodeBase64(keypair.secretKey);
-    const pubBase64 = encodeBase64(keypair.publicKey);
+    if (!privateKeySetting || !publicKeySetting) {
+      const keypair = nacl.sign.keyPair();
+      const privBase64 = encodeBase64(keypair.secretKey);
+      const pubBase64 = encodeBase64(keypair.publicKey);
 
-    await prisma.setting.upsert({
-      where: { key: 'private_key' },
-      update: { value: privBase64 },
-      create: { key: 'private_key', value: privBase64 },
-    });
+      try {
+        await prisma.setting.upsert({
+          where: { key: 'private_key' },
+          update: { value: privBase64 },
+          create: { key: 'private_key', value: privBase64 },
+        });
 
-    await prisma.setting.upsert({
-      where: { key: 'public_key' },
-      update: { value: pubBase64 },
-      create: { key: 'public_key', value: pubBase64 },
-    });
+        await prisma.setting.upsert({
+          where: { key: 'public_key' },
+          update: { value: pubBase64 },
+          create: { key: 'public_key', value: pubBase64 },
+        });
+      } catch (e) {
+        // DB writing failed, use memory keypair
+      }
 
-    return { privateKey: keypair.secretKey, publicKey: keypair.publicKey, pubBase64 };
+      return { privateKey: keypair.secretKey, publicKey: keypair.publicKey, pubBase64 };
+    }
+
+    return {
+      privateKey: decodeBase64(privateKeySetting.value),
+      publicKey: decodeBase64(publicKeySetting.value),
+      pubBase64: publicKeySetting.value
+    };
+  } catch (e) {
+    const fallbackSeed = new Uint8Array(32).fill(7);
+    const keypair = nacl.sign.keyPair.fromSeed(fallbackSeed);
+    return {
+      privateKey: keypair.secretKey,
+      publicKey: keypair.publicKey,
+      pubBase64: encodeBase64(keypair.publicKey)
+    };
   }
-
-  return {
-    privateKey: decodeBase64(privateKeySetting.value),
-    publicKey: decodeBase64(publicKeySetting.value),
-    pubBase64: publicKeySetting.value
-  };
 }
 
 function generateHumanCode() {

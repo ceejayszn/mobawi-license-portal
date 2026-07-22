@@ -6,7 +6,12 @@ export default async function ApplicationsPage() {
   const session = await getSession();
   if (!session) redirect('/');
 
-  const apps = await prisma.application.findMany({ orderBy: { id: 'desc' } });
+  let apps: any[] = [];
+  try {
+    apps = await prisma.application.findMany({ orderBy: { id: 'desc' } });
+  } catch (e) {
+    console.error('Applications database error:', e);
+  }
 
   return (
     <div>

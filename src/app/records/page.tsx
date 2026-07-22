@@ -17,12 +17,17 @@ export default async function RecordsPage({ searchParams }: { searchParams: { q?
     where.status = searchParams.status;
   }
 
-  const licenses = await prisma.license.findMany({
-    where,
-    orderBy: { id: 'desc' },
-    include: { application: true, generatedBy: true },
-    take: 100
-  });
+  let licenses: any[] = [];
+  try {
+    licenses = await prisma.license.findMany({
+      where,
+      orderBy: { id: 'desc' },
+      include: { application: true, generatedBy: true },
+      take: 100
+    });
+  } catch (e) {
+    console.error('Records database error:', e);
+  }
 
   return (
     <div>
