@@ -31,14 +31,24 @@ export default function GeneratePage() {
     }
   }
 
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (result?.licenseBlob) {
+      navigator.clipboard.writeText(result.licenseBlob);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-5">
       <div className="card flex-1">
-        <h2>GENERATE OFFLINE LICENSE</h2>
-        {error && <div className="alert-error">{error}</div>}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <h2 className="font-semibold text-lg sm:text-xl">GENERATE OFFLINE LICENSE</h2>
+        {error && <div className="alert-error mt-2">{error}</div>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div>
-            <label className="block text-accent mb-1">Application</label>
+            <label className="block text-accent mb-1 text-xs font-semibold">Application</label>
             <select name="applicationId" className="input-field" required>
               <option value="">-- Select Application --</option>
               {apps.map(app => (
@@ -47,41 +57,41 @@ export default function GeneratePage() {
             </select>
           </div>
           <div>
-            <label className="block text-accent mb-1">Device Fingerprint (SHA-256)</label>
+            <label className="block text-accent mb-1 text-xs font-semibold">Device Fingerprint (SHA-256)</label>
             <input type="text" name="deviceFingerprint" className="input-field" required placeholder="e.g. 5e884898da2..." />
           </div>
           <div>
-            <label className="block text-accent mb-1">Duration</label>
-            <select name="type" className="input-field">
+            <label className="block text-accent mb-1 text-xs font-semibold">Duration</label>
+            <select name="type" className="input-field" defaultValue="30 Days">
               <option value="1 Hour">1 Hour</option>
               <option value="24 Hours">24 Hours</option>
               <option value="7 Days">7 Days</option>
-              <option value="30 Days" defaultValue="30 Days">30 Days</option>
+              <option value="30 Days">30 Days</option>
               <option value="90 Days">90 Days</option>
               <option value="180 Days">180 Days</option>
               <option value="365 Days">365 Days</option>
               <option value="Lifetime">Lifetime</option>
             </select>
           </div>
-          <button type="submit" className="btn mt-2">GENERATE LICENSE</button>
+          <button type="submit" className="btn mt-2 w-full">GENERATE LICENSE</button>
         </form>
       </div>
 
       {result && (
-        <div className="card flex-1">
-          <h2 className="text-success">GENERATED LICENSE DETAILS</h2>
+        <div className="card flex-1 border-success/30">
+          <h2 className="text-success font-semibold text-lg sm:text-xl">GENERATED LICENSE DETAILS</h2>
           <div className="mt-4">
-            <label className="block text-accent">Activation Code</label>
-            <div className="mono-block text-success text-2xl">{result.humanCode}</div>
+            <label className="block text-accent text-xs font-semibold">Activation Code</label>
+            <div className="mono-block text-success text-lg sm:text-2xl font-bold tracking-wider">{result.humanCode}</div>
           </div>
           <div className="mt-5">
-            <label className="block text-accent">Offline License Blob (Base64 JSON)</label>
-            <div className="mono-block">{result.licenseBlob}</div>
+            <label className="block text-accent text-xs font-semibold">Offline License Blob (Base64 JSON)</label>
+            <div className="mono-block text-xs max-h-48 overflow-y-auto break-all">{result.licenseBlob}</div>
             <button 
-              onClick={() => { navigator.clipboard.writeText(result.licenseBlob); alert('Copied!'); }} 
-              className="btn mt-2 text-xs"
+              onClick={handleCopy} 
+              className={`btn mt-3 text-xs w-full sm:w-auto ${copied ? 'border-success text-success' : ''}`}
             >
-              COPY BLOB
+              {copied ? '✓ COPIED TO CLIPBOARD' : 'COPY BLOB'}
             </button>
           </div>
         </div>

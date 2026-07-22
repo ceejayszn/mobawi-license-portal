@@ -4,52 +4,52 @@
 
 @layer base {
   body {
-    @apply bg-background text-foreground font-mono text-sm leading-relaxed antialiased;
+    @apply bg-background text-foreground font-mono text-sm leading-relaxed antialiased overflow-x-hidden;
   }
 
   h1,
   h2,
   h3 {
-    @apply text-accent font-normal mb-4;
+    @apply text-accent font-normal mb-4 tracking-wide;
   }
 
   h1 {
-    @apply text-2xl;
+    @apply text-xl sm:text-2xl;
   }
 
   h2 {
-    @apply text-xl;
+    @apply text-lg sm:text-xl;
   }
 
   a {
-    @apply underline hover:text-accent;
+    @apply underline hover:text-accent transition-colors;
   }
 }
 
 @layer components {
   .card {
-    @apply border border-border p-5 mb-5 bg-[#0f0f0f];
+    @apply border border-border p-4 sm:p-6 mb-5 bg-[#0f0f0f] rounded-lg shadow-lg;
   }
 
   .input-field {
-    @apply w-full bg-[#111] text-foreground border border-border p-2 outline-none focus:border-accent font-mono;
+    @apply w-full bg-[#111] text-foreground border border-border px-3 py-2.5 sm:py-2 min-h-[42px] outline-none focus:border-accent rounded font-mono text-sm transition-colors;
   }
 
   .btn {
-    @apply bg-[#1a1a1a] text-accent border border-border px-4 py-2 font-mono uppercase cursor-pointer hover:bg-[#333];
+    @apply bg-[#1a1a1a] text-accent border border-border px-4 py-2.5 sm:py-2 min-h-[42px] font-mono uppercase cursor-pointer hover:bg-[#333] active:bg-[#444] rounded text-sm transition-colors flex items-center justify-center;
   }
 
   .table-main {
-    @apply w-full border-collapse mt-5;
+    @apply w-full border-collapse mt-4 text-xs sm:text-sm;
   }
 
   .table-main th,
   .table-main td {
-    @apply border border-border p-2.5 text-left;
+    @apply border border-border px-3 py-2.5 text-left whitespace-nowrap;
   }
 
   .table-main th {
-    @apply bg-[#111] text-accent font-normal uppercase;
+    @apply bg-[#111] text-accent font-medium uppercase tracking-wider text-xs;
   }
 
   .table-main tr:hover {
@@ -57,14 +57,14 @@
   }
 
   .alert-error {
-    @apply p-2.5 border border-error text-error mb-4;
+    @apply p-3 border border-error text-error mb-4 rounded text-sm bg-error/10;
   }
 
   .alert-success {
-    @apply p-2.5 border border-success text-success mb-4;
+    @apply p-3 border border-success text-success mb-4 rounded text-sm bg-success/10;
   }
 
   .mono-block {
-    @apply bg-black p-4 border border-[#333] font-mono whitespace-pre-wrap break-all mt-2.5;
+    @apply bg-black p-3.5 sm:p-4 border border-[#333] font-mono text-xs sm:text-sm whitespace-pre-wrap break-all mt-2.5 rounded;
   }
 }

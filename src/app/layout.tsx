@@ -13,11 +13,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body>
-        <div className="max-w-[1200px] mx-auto p-5">
-          <header className="border-b border-border pb-2.5 mb-5 flex justify-between items-center">
-            <div className="text-2xl text-accent">
+        <div className="max-w-[1200px] mx-auto p-4 sm:p-6">
+          <header className="border-b border-border pb-3 mb-6 flex flex-row justify-between items-center gap-3">
+            <Link href={session ? "/dashboard" : "/"} className="no-underline text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-accent hover:no-underline">
               MOBAWI<span className="text-[#555]">_</span>LICENSE<span className="text-[#555]">_</span>PORTAL
-            </div>
+            </Link>
             {session && (
               <Navigation />
             )}

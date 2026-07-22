@@ -44,12 +44,12 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h2>SYSTEM DASHBOARD</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <h2 className="text-xl font-bold mb-4">SYSTEM DASHBOARD</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {stats.map((stat) => (
-          <div key={stat.label} className="border border-border p-4 text-center">
-            <div>{stat.label}</div>
-            <div className="text-3xl text-accent mt-2">{stat.value}</div>
+          <div key={stat.label} className="border border-border p-3.5 sm:p-5 text-center bg-[#0f0f0f] rounded-lg shadow-sm">
+            <div className="text-xs sm:text-sm text-foreground/80 font-medium">{stat.label}</div>
+            <div className="text-2xl sm:text-3xl text-accent font-bold mt-1.5">{stat.value}</div>
           </div>
         ))}
       </div>

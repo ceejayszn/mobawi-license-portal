@@ -31,16 +31,16 @@ export default async function RecordsPage({ searchParams }: { searchParams: { q?
 
   return (
     <div>
-      <h2>LICENSE RECORDS</h2>
+      <h2 className="font-semibold text-lg sm:text-xl mb-4">LICENSE RECORDS</h2>
       
       <div className="card">
-        <form method="GET" className="flex flex-col sm:flex-row gap-4 items-end">
+        <form method="GET" className="flex flex-col md:flex-row gap-3 sm:gap-4 items-stretch md:items-end">
           <div className="flex-[2] w-full">
-            <label className="block text-accent mb-1">Search</label>
+            <label className="block text-accent mb-1 text-xs font-semibold">Search</label>
             <input type="text" name="q" className="input-field" placeholder="Code or Device ID" defaultValue={searchParams.q || ''} />
           </div>
           <div className="flex-1 w-full">
-            <label className="block text-accent mb-1">Status</label>
+            <label className="block text-accent mb-1 text-xs font-semibold">Status</label>
             <select name="status" className="input-field" defaultValue={searchParams.status || ''}>
               <option value="">All</option>
               <option value="Active">Active</option>
@@ -49,12 +49,12 @@ export default async function RecordsPage({ searchParams }: { searchParams: { q?
               <option value="Revoked">Revoked</option>
             </select>
           </div>
-          <button type="submit" className="btn w-full sm:w-auto">FILTER</button>
+          <button type="submit" className="btn w-full md:w-auto">FILTER</button>
         </form>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="table-main">
+      <div className="overflow-x-auto rounded-lg border border-border shadow-sm mt-4">
+        <table className="table-main mt-0">
           <thead>
             <tr>
               <th>Code</th>
@@ -69,25 +69,40 @@ export default async function RecordsPage({ searchParams }: { searchParams: { q?
           <tbody>
             {licenses.map(l => (
               <tr key={l.id}>
-                <td>{l.payload}</td>
-                <td>{l.application.name}</td>
-                <td title={l.deviceFingerprint}>{l.deviceFingerprint.substring(0, 16)}...</td>
-                <td>{new Date(l.expiryDate).toLocaleDateString()}</td>
-                <td className={l.status === 'Active' ? 'text-success' : l.status === 'Revoked' ? 'text-error' : ''}>{l.status}</td>
-                <td>{l.generatedBy?.username || 'System'}</td>
+                <td className="font-mono text-accent font-semibold">{l.payload}</td>
+                <td>{l.application?.name || 'N/A'}</td>
+                <td className="font-mono text-xs text-foreground/80" title={l.deviceFingerprint}>
+                  {l.deviceFingerprint ? `${l.deviceFingerprint.substring(0, 12)}...` : 'N/A'}
+                </td>
+                <td className="text-xs">{new Date(l.expiryDate).toLocaleDateString()}</td>
+                <td>
+                  <span className={`px-2 py-0.5 rounded text-xs border ${
+                    l.status === 'Active' ? 'bg-success/10 text-success border-success/20' :
+                    l.status === 'Revoked' ? 'bg-error/10 text-error border-error/20' :
+                    'bg-white/5 text-foreground/70 border-border'
+                  }`}>
+                    {l.status}
+                  </span>
+                </td>
+                <td className="text-xs">{l.generatedBy?.username || 'System'}</td>
                 <td>
                   <form method="POST" action="/api/licenses" className="inline flex gap-2">
                     <input type="hidden" name="id" value={l.id} />
                     {l.status === 'Active' && (
                       <>
-                        <button type="submit" name="action" value="suspend" className="text-xs border px-2 py-1">Suspend</button>
-                        <button type="submit" name="action" value="revoke" className="text-error border-error text-xs border px-2 py-1">Revoke</button>
+                        <button type="submit" name="action" value="suspend" className="text-xs border border-border hover:bg-[#222] px-2 py-1 rounded">Suspend</button>
+                        <button type="submit" name="action" value="revoke" className="text-error border-error/50 hover:bg-error/10 text-xs border px-2 py-1 rounded">Revoke</button>
                       </>
                     )}
                   </form>
                 </td>
               </tr>
             ))}
+            {licenses.length === 0 && (
+              <tr>
+                <td colSpan={7} className="text-center p-6 text-foreground/60">No license records found.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
