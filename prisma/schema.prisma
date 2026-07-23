@@ -40,6 +40,9 @@ model License {
   salt              String
   signature         String
   payload           String
+  clientName        String?
+  clientPhone       String?
+  notes             String?
   generatedById     Int?
   createdAt         DateTime    @default(now())
 

@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
   try {
     const data = await req.json();
-    const { applicationId, deviceFingerprint, type, customHours, customDays } = data;
+    const { applicationId, deviceFingerprint, type, customHours, customDays, clientName, clientPhone, notes } = data;
 
     const appId = parseInt(applicationId, 10);
     if (!appId || !deviceFingerprint) {
@@ -61,13 +61,22 @@ export async function POST(req: Request) {
         salt: payload.salt,
         signature: payload.signature,
         payload: payload.humanCode,
+        clientName: clientName ? String(clientName).trim() : null,
+        clientPhone: clientPhone ? String(clientPhone).trim() : null,
+        notes: notes ? String(notes).trim() : null,
         generatedById: session.userId,
       }
     });
 
     await prisma.auditLog.create({ data: { userId: session.userId, action: 'GENERATE_LICENSE', targetId: license.id, targetType: 'license' } });
 
-    return NextResponse.json(payload);
+    return NextResponse.json({
+      ...payload,
+      expiryDate: expiryDate.toISOString(),
+      clientName: license.clientName,
+      clientPhone: license.clientPhone,
+      notes: license.notes
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
