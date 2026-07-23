@@ -51,6 +51,7 @@ export default function Navigation() {
     { href: '/applications', label: 'Applications' },
     { href: '/generate', label: 'Generate' },
     { href: '/records', label: 'Records' },
+    { href: '/pricing', label: 'Pricing' },
     { href: '/settings', label: 'Settings' },
   ];
 
