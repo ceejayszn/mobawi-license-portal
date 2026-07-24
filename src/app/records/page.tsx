@@ -2,6 +2,8 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import LicenseCountdown from '@/components/LicenseCountdown';
+import ViewBlobModal from '@/components/ViewBlobModal';
+import { constructLicenseBlob } from '@/lib/crypto';
 
 export default async function RecordsPage({ searchParams }: { searchParams: { q?: string, status?: string } }) {
   const session = await getSession();
@@ -72,50 +74,62 @@ export default async function RecordsPage({ searchParams }: { searchParams: { q?
             </tr>
           </thead>
           <tbody>
-            {licenses.map(l => (
-              <tr key={l.id}>
-                <td className="font-mono text-accent font-semibold">{l.payload}</td>
-                <td>{l.application?.name || 'N/A'}</td>
-                <td className="text-xs max-w-[200px]">
-                  {l.clientName || l.clientPhone || l.notes ? (
-                    <div className="space-y-0.5">
-                      {l.clientName && <div className="font-semibold text-foreground">{l.clientName}</div>}
-                      {l.clientPhone && <div className="text-accent/90">{l.clientPhone}</div>}
-                      {l.notes && <div className="text-foreground/70 truncate text-[11px]" title={l.notes}>📝 {l.notes}</div>}
-                    </div>
-                  ) : (
-                    <span className="text-foreground/40 italic">-</span>
-                  )}
-                </td>
-                <td className="font-mono text-xs text-foreground/80" title={l.deviceFingerprint}>
-                  {l.deviceFingerprint ? `${l.deviceFingerprint.substring(0, 12)}...` : 'N/A'}
-                </td>
-                <td>
-                  <LicenseCountdown expiryDate={l.expiryDate.toISOString()} status={l.status} />
-                </td>
-                <td>
-                  <span className={`px-2 py-0.5 rounded text-xs border ${
-                    l.status === 'Active' ? 'bg-success/10 text-success border-success/20' :
-                    l.status === 'Revoked' ? 'bg-error/10 text-error border-error/20' :
-                    'bg-white/5 text-foreground/70 border-border'
-                  }`}>
-                    {l.status}
-                  </span>
-                </td>
-                <td className="text-xs">{l.generatedBy?.username || 'System'}</td>
-                <td>
-                  <form method="POST" action="/api/licenses" className="inline flex gap-2">
-                    <input type="hidden" name="id" value={l.id} />
-                    {l.status === 'Active' && (
-                      <>
-                        <button type="submit" name="action" value="suspend" className="text-xs border border-border hover:bg-[#222] px-2 py-1 rounded">Suspend</button>
-                        <button type="submit" name="action" value="revoke" className="text-error border-error/50 hover:bg-error/10 text-xs border px-2 py-1 rounded">Revoke</button>
-                      </>
+            {licenses.map(l => {
+              const blobString = constructLicenseBlob(l);
+
+              return (
+                <tr key={l.id}>
+                  <td className="font-mono text-accent font-semibold">{l.payload}</td>
+                  <td>{l.application?.name || 'N/A'}</td>
+                  <td className="text-xs max-w-[200px]">
+                    {l.clientName || l.clientPhone || l.notes ? (
+                      <div className="space-y-0.5">
+                        {l.clientName && <div className="font-semibold text-foreground">{l.clientName}</div>}
+                        {l.clientPhone && <div className="text-accent/90">{l.clientPhone}</div>}
+                        {l.notes && <div className="text-foreground/70 truncate text-[11px]" title={l.notes}>📝 {l.notes}</div>}
+                      </div>
+                    ) : (
+                      <span className="text-foreground/40 italic">-</span>
                     )}
-                  </form>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="font-mono text-xs text-foreground/80" title={l.deviceFingerprint}>
+                    {l.deviceFingerprint ? `${l.deviceFingerprint.substring(0, 12)}...` : 'N/A'}
+                  </td>
+                  <td>
+                    <LicenseCountdown expiryDate={l.expiryDate.toISOString()} status={l.status} />
+                  </td>
+                  <td>
+                    <span className={`px-2 py-0.5 rounded text-xs border ${
+                      l.status === 'Active' ? 'bg-success/10 text-success border-success/20' :
+                      l.status === 'Revoked' ? 'bg-error/10 text-error border-error/20' :
+                      'bg-white/5 text-foreground/70 border-border'
+                    }`}>
+                      {l.status}
+                    </span>
+                  </td>
+                  <td className="text-xs">{l.generatedBy?.username || 'System'}</td>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <ViewBlobModal
+                        code={l.payload}
+                        blob={blobString}
+                        appName={l.application?.name || 'Application'}
+                        device={l.deviceFingerprint}
+                      />
+                      <form method="POST" action="/api/licenses" className="inline flex gap-2">
+                        <input type="hidden" name="id" value={l.id} />
+                        {l.status === 'Active' && (
+                          <>
+                            <button type="submit" name="action" value="suspend" className="text-xs border border-border hover:bg-[#222] px-2 py-1 rounded">Suspend</button>
+                            <button type="submit" name="action" value="revoke" className="text-error border-error/50 hover:bg-error/10 text-xs border px-2 py-1 rounded">Revoke</button>
+                          </>
+                        )}
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
             {licenses.length === 0 && (
               <tr>
                 <td colSpan={8} className="text-center p-6 text-foreground/60">No license records found.</td>

@@ -92,3 +92,32 @@ export async function generateLicensePayload(appId: number, deviceId: string, is
     licenseBlob: finalBlob
   };
 }
+
+export function constructLicenseBlob(license: {
+  applicationId: number;
+  deviceFingerprint: string;
+  issueDate: Date | string;
+  expiryDate: Date | string;
+  type: string;
+  status: string;
+  salt: string;
+  signature: string;
+  payload: string;
+}) {
+  const payloadData = {
+    v: "1",
+    app: license.applicationId,
+    dev: license.deviceFingerprint,
+    iss: new Date(license.issueDate).toISOString(),
+    exp: new Date(license.expiryDate).toISOString(),
+    typ: license.type,
+    st: license.status,
+    slt: license.salt
+  };
+
+  return encodeBase64(decodeUTF8(JSON.stringify({
+    code: license.payload,
+    payload: payloadData,
+    sig: license.signature
+  })));
+}
