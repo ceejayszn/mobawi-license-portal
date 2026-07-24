@@ -53,25 +53,38 @@ export default function GeneratePage() {
   const [apps, setApps] = useState<{id: number, name: string, platform: string}[]>([]);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
+  const [existingActiveInfo, setExistingActiveInfo] = useState<any>(null);
   const [selectedType, setSelectedType] = useState('30 Days');
   const [customValue, setCustomValue] = useState('100');
+  const [lastSubmittedBody, setLastSubmittedBody] = useState<any>(null);
 
   useEffect(() => {
     fetch('/api/applications/list').then(r => r.json()).then(setApps);
   }, []);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>, overrideForce = false) {
+    if (e && e.preventDefault) e.preventDefault();
     setError('');
+    setExistingActiveInfo(null);
     setResult(null);
     
-    const formData = new FormData(e.currentTarget);
-    const body: any = Object.fromEntries(formData);
+    let body: any = {};
+    if (e && e.currentTarget) {
+      const formData = new FormData(e.currentTarget);
+      body = Object.fromEntries(formData);
 
-    if (selectedType === 'Custom Hours') {
-      body.customHours = customValue;
-    } else if (selectedType === 'Custom Days') {
-      body.customDays = customValue;
+      if (selectedType === 'Custom Hours') {
+        body.customHours = customValue;
+      } else if (selectedType === 'Custom Days') {
+        body.customDays = customValue;
+      }
+      setLastSubmittedBody(body);
+    } else {
+      body = { ...lastSubmittedBody };
+    }
+
+    if (overrideForce) {
+      body.forceReplace = true;
     }
     
     const res = await fetch('/api/generate', {
@@ -80,11 +93,15 @@ export default function GeneratePage() {
       headers: { 'Content-Type': 'application/json' },
     });
 
+    const data = await res.json();
+
     if (res.ok) {
-      setResult(await res.json());
+      setResult(data);
     } else {
-      const data = await res.json();
       setError(data.error || 'Failed to generate license');
+      if (data.hasExistingActive) {
+        setExistingActiveInfo(data);
+      }
     }
   }
 
@@ -102,7 +119,34 @@ export default function GeneratePage() {
     <div className="flex flex-col lg:flex-row gap-5">
       <div className="card flex-1">
         <h2 className="font-semibold text-lg sm:text-xl">GENERATE OFFLINE LICENSE</h2>
-        {error && <div className="alert-error mt-2">{error}</div>}
+        
+        {error && (
+          <div className="alert-error mt-3 p-3.5 rounded-lg border border-error/40 bg-error/10 text-error text-xs flex flex-col gap-2">
+            <div className="font-semibold flex items-center gap-1.5">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+
+            {existingActiveInfo && (
+              <div className="flex flex-wrap gap-2 mt-1 pt-2 border-t border-error/20">
+                <button
+                  type="button"
+                  onClick={() => handleSubmit(null as any, true)}
+                  className="btn text-xs bg-error hover:bg-error/80 text-white px-3 py-1.5 rounded"
+                >
+                  ⚡ Suspend Existing ({existingActiveInfo.existingCode}) & Issue New Key
+                </button>
+                <a
+                  href={`/records?q=${encodeURIComponent(existingActiveInfo.existingCode)}`}
+                  className="px-3 py-1.5 rounded border border-border bg-[#181818] hover:bg-[#222] text-foreground text-xs font-semibold"
+                >
+                  🔍 View in Records
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div>
             <label className="block text-accent mb-1 text-xs font-semibold">Application</label>

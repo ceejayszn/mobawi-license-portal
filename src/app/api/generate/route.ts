@@ -9,11 +9,44 @@ export async function POST(req: Request) {
 
   try {
     const data = await req.json();
-    const { applicationId, deviceFingerprint, type, customHours, customDays, clientName, clientPhone, notes } = data;
+    const { applicationId, deviceFingerprint, type, customHours, customDays, clientName, clientPhone, notes, forceReplace } = data;
 
     const appId = parseInt(applicationId, 10);
-    if (!appId || !deviceFingerprint) {
+    const cleanDeviceId = (deviceFingerprint || '').trim();
+
+    if (!appId || !cleanDeviceId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Check if an ACTIVE license already exists for this app & device
+    const existingActive = await prisma.license.findFirst({
+      where: {
+        applicationId: appId,
+        deviceFingerprint: cleanDeviceId,
+        status: 'Active',
+        expiryDate: { gt: new Date() }
+      }
+    });
+
+    if (existingActive) {
+      if (forceReplace) {
+        // Suspend the old active license before creating new one
+        await prisma.license.update({
+          where: { id: existingActive.id },
+          data: { status: 'Suspended' }
+        });
+        await prisma.auditLog.create({
+          data: { userId: session.userId, action: 'SUSPEND_LICENSE_OVERWRITE', targetId: existingActive.id, targetType: 'license' }
+        }).catch(() => {});
+      } else {
+        return NextResponse.json({
+          error: `An ACTIVE license key (${existingActive.payload}) is currently active for this device on this application. Please suspend/revoke it in Records first or click 'Suspend Existing & Replace'.`,
+          hasExistingActive: true,
+          existingLicenseId: existingActive.id,
+          existingCode: existingActive.payload,
+          existingExpiry: existingActive.expiryDate.toISOString()
+        }, { status: 409 });
+      }
     }
 
     const issueDate = new Date();
